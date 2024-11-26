@@ -17,32 +17,44 @@ public class Topology1Config {
 
     @Bean(name = "topology1")
     public KafkaStreams kafkaStreamsTopology1() {
-        // Configuración específica para la topología 1
+        Properties props = getProperties();
+
+        Topology topology = getTopology();
+        KafkaStreams streams = new KafkaStreams(topology, props);
+
+        streams.start();
+
+        return streams;
+    }
+
+    public Topology getTopology() {
+        StreamsBuilder builder = new StreamsBuilder();
+
+        var table = builder.table(
+                "uppercase",
+                Consumed.with(Serdes.String(), Serdes.String()),
+                Materialized.as("WORDS")
+        );
+
+
+        builder.stream("greetings", Consumed.with(Serdes.String(), Serdes.String()))
+            .mapValues(value -> value.toUpperCase())
+            .leftJoin(
+                    table,
+                    (greeting, word) -> word == null ? greeting : word
+            ).to("greetings_spanish");
+
+
+        return builder.build();
+    }
+
+    public Properties getProperties() {
         Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "topology1-app");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
 
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
-
-        // Define la topología 1
-        StreamsBuilder builder = new StreamsBuilder();
-
-        builder.table(
-                "greetings",
-                Consumed.with(Serdes.String(), Serdes.String()),
-                Materialized.as("WORDS")
-        ).mapValues(value -> value.toUpperCase())
-                .toStream()
-                .to("uppercase");
-
-
-        Topology topology = builder.build();
-        KafkaStreams streams = new KafkaStreams(topology, props);
-
-        // Inicia la topología
-        streams.start();
-
-        return streams;
+        return props;
     }
 }

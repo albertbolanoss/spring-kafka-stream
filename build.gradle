@@ -20,7 +20,9 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.kafka:spring-kafka'
-	implementation 'org.apache.kafka:kafka-streams' // Para Kafka Streams
+	implementation 'org.apache.kafka:kafka-streams'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.apache.kafka:kafka-streams-test-utils'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
